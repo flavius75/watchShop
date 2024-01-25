@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product
@@ -14,38 +15,52 @@ class Product
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(["getProducts"])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["getProducts"])]
     private ?string $productBrand = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["getProducts"])]
     private ?string $productModel = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(["getProducts"])]
     private ?string $productDescription = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["getProducts"])]
     private ?string $productMovment = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["getProducts"])]
     private ?string $productGender = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(["getProducts"])]
     private ?array $productExtra = null;
 
-    #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2)]
+    #[ORM\Column(type: Types::DECIMAL, precision: 8, scale: 2)]
+    #[Groups(["getProducts"])]
     private ?string $productPrice = null;
 
     #[ORM\Column(type: Types::SMALLINT)]
+    #[Groups(["getProducts"])]
     private ?int $productStock = null;
 
     #[ORM\ManyToOne(inversedBy: 'products')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false)]    
+    #[Groups(["getProducts"])]
     private ?Brand $brand = null;
 
     #[ORM\OneToMany(mappedBy: 'itemProduct', targetEntity: OrderItem::class)]
     private Collection $orderItems;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(["getProducts"])]
+    private ?string $productImageUrl = null;
 
     public function __construct()
     {
@@ -191,6 +206,18 @@ class Product
                 $orderItem->setItemProduct(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getProductImageUrl(): ?string
+    {
+        return $this->productImageUrl;
+    }
+
+    public function setProductImageUrl(?string $productImageUrl): static
+    {
+        $this->productImageUrl = $productImageUrl;
 
         return $this;
     }

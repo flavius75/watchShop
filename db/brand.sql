@@ -1,15 +1,15 @@
-INSERT INTO Brand (brand_name) VALUES
+INSERT INTO brand (brand_name) VALUES
 	('Alpina'),
-	('Audemars Piguet');
+	('Audemars Piguet'),
 	('Awake'),
-	('Baume et Mercier '),
+	('Baume et Mercier'),
 	('Breitling'),
 	('Breguet'),
 	('Casio'),
 	('Cartier'),
 	('Citizen'),
 	('Fossil'),
-	('Frédérique Constant '),
+	('Frédérique Constant'),
 	('Hamilton'),
 	('Herbelin'),
 	('Jaeger-LeCultre'),
@@ -17,13 +17,13 @@ INSERT INTO Brand (brand_name) VALUES
 	('Lip'),
 	('Orient'),
 	('Oris'),
-	('Omega');
-	('Patek Philippe');
+	('Omega'),
+	('Patek Philippe'),
 	('Rado'),
-	('Rolex');
+	('Rolex'),
 	('Seiko'),
-	('Tissot');
-	('Timex');
-	('Swatch');
+	('Tissot'),
+	('Timex'),
+	('Swatch'),
 	('Zeppelin'),
-	('Zenith'),
+	('Zenith');

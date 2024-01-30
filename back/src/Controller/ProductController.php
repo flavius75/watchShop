@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Product;
+use App\Repository\BrandRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,8 +12,10 @@ use Doctrine\Persistence\ManagerRegistry;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
-use Symfony\Component\HttpFoundation\Request
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+
 
 class ProductController extends AbstractController
 {
@@ -50,11 +53,16 @@ class ProductController extends AbstractController
     }
 
     #[Route('/api/products/', name: 'product_create', methods: ['POST'])]
-    public function createProduct(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator): JsonResponse
+    public function createProduct(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, BrandRepository $brandRepository): JsonResponse
     {
         $product = $serializer->deserialize($request->getContent(), Product::class, 'json');
         $em->persist($product);
         $em->flush();
+
+        $content =$request->toArray();
+        $brandId = $content['brandId'] ?? -1;
+
+        $product->setBrand($brandRepository->find($brandId));
 
         $jsonProduct = $serializer->serialize($product, 'json', ['groups' => 'getProducts']);
 
@@ -62,6 +70,24 @@ class ProductController extends AbstractController
 
         return new JsonResponse($jsonProduct, Response::HTTP_CREATED, ["Location" => $location], true);
     }
+
+  
+    #[Route('/api/products/{id}', name:"product_update", methods:['PUT'])]
+
+    public function updateProduct(Request $request, SerializerInterface $serializer, Product $currentProduct, EntityManagerInterface $em, BrandRepository $brandRepository): JsonResponse 
+    {
+        $updatedProduct = $serializer->deserialize($request->getContent(), 
+                Product::class, 
+                'json', 
+                [AbstractNormalizer::OBJECT_TO_POPULATE => $currentProduct]);
+        $content = $request->toArray();
+        $brandId = $content['brandId'] ?? -1;
+        $updatedProduct->setBrand($brandRepository->find($brandId));
+        
+        $em->persist($updatedProduct);
+        $em->flush();
+        return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
+   }
 
 
 }

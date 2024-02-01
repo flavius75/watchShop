@@ -15,7 +15,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ProductController extends AbstractController
 {
@@ -53,17 +53,24 @@ class ProductController extends AbstractController
     }
 
     #[Route('/api/products/', name: 'product_create', methods: ['POST'])]
-    public function createProduct(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, BrandRepository $brandRepository): JsonResponse
+    public function createProduct(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, BrandRepository $brandRepository, ValidatorInterface $validator): JsonResponse
     {
         $product = $serializer->deserialize($request->getContent(), Product::class, 'json');
+        
+        $errors = $validator->validate($product);
+
+        if ($errors->count() > 0) {
+            return new JsonResponse($serializer->serialize($errors, 'json'), Response::HTTP_BAD_REQUEST, [], true);
+        }
+        
+        $content =$request->toArray();
+        $brandId = $content['brand_id'] ?? -1;
+        
+        $product->setBrand($brandRepository->find($brandId));
+        
         $em->persist($product);
         $em->flush();
-
-        $content =$request->toArray();
-        $brandId = $content['brandId'] ?? -1;
-
-        $product->setBrand($brandRepository->find($brandId));
-
+        
         $jsonProduct = $serializer->serialize($product, 'json', ['groups' => 'getProducts']);
 
         $location = $urlGenerator->generate('product_detail', ['id' => $product->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
@@ -81,7 +88,7 @@ class ProductController extends AbstractController
                 'json', 
                 [AbstractNormalizer::OBJECT_TO_POPULATE => $currentProduct]);
         $content = $request->toArray();
-        $brandId = $content['brandId'] ?? -1;
+        $brandId = $content['brand_id'] ?? -1;
         $updatedProduct->setBrand($brandRepository->find($brandId));
         
         $em->persist($updatedProduct);

@@ -16,13 +16,17 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use  Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 class ProductController extends AbstractController
 {
 
     #[Route('/api/products', name: 'products_all', methods: ['GET'])]
-    public function getAllProducts(ProductRepository $productRepository, SerializerInterface $serializer): JsonResponse
+    public function getAllProducts(ProductRepository $productRepository, SerializerInterface $serializer, Request $request): JsonResponse
     {
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 4);
+
         $productList = $productRepository->findAll();
 
         $jsonProductList = $serializer->serialize($productList, 'json', ['groups' => 'getProducts']);
@@ -42,6 +46,7 @@ class ProductController extends AbstractController
     }
 
     #[Route('/api/products/{id}', name: 'product_delete', methods: ['DELETE'])]
+    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour supprimer un produit')]
     public function deleteProduct(int $id, ProductRepository $productRepository, EntityManagerInterface $em): JsonResponse
     {
         $product = $productRepository->find($id);
@@ -53,6 +58,7 @@ class ProductController extends AbstractController
     }
 
     #[Route('/api/products/', name: 'product_create', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour créer un produit')]
     public function createProduct(Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, BrandRepository $brandRepository, ValidatorInterface $validator): JsonResponse
     {
         $product = $serializer->deserialize($request->getContent(), Product::class, 'json');
@@ -80,6 +86,7 @@ class ProductController extends AbstractController
 
   
     #[Route('/api/products/{id}', name:"product_update", methods:['PUT'])]
+    #[IsGranted('ROLE_ADMIN', message: 'Vous n\'avez pas les droits suffisants pour modifier un produit')]
 
     public function updateProduct(Request $request, SerializerInterface $serializer, Product $currentProduct, EntityManagerInterface $em, BrandRepository $brandRepository): JsonResponse 
     {
